@@ -1,0 +1,21 @@
+# 结果文件
+found_payment.txt
+
+# 测试/验证脚本
+test_kbsv*.py
+verify_kbsv*.py
+test_kbsv_real*.py
+
+# 早期版本
+brute_payment.py
+brute_kfc.py
+brute_kfc_final.py
+run_brute.py
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 解包目录
+解包/
