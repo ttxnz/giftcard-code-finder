@@ -1,0 +1,20 @@
+{
+    "cardSequence": "",
+    "paymentPrefix": "",
+    "token": "",
+    "openId": "",
+
+    "secretKey": "ph",
+    "encodeList": [],
+    "referer": "https://servicewechat.com/wx534b0be83d03a625/458/page-frame.html",
+    "host": "appmall.pizzahut.com.cn",
+
+    "clientKey": "wxau5PW6sWIwx7nQ",
+    "clientSec": "5opsk5ClazpBfq8B",
+    "signPath": "/card/queryRealCardInfo",
+    "fullUrl": "https://appmall.pizzahut.com.cn/api/card/queryRealCardInfo",
+
+    "threads": 20,
+    "maxRetry": 5,
+    "retryWait": 3
+}

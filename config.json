@@ -2,7 +2,12 @@
     "cardSequence": "",
     "paymentPrefix": "",
     "token": "",
-    "openId": "omxHq0Jd7YT4IAQqpos_7StS_e4M",
+    "openId": "",
+
+    "secretKey": "kfc",
+    "encodeList": ["smsCode"],
+    "referer": "https://servicewechat.com/wx08ee7f7d36a2eff8/455/page-frame.html",
+    "host": "appcamp.kfc.com.cn",
 
     "clientKey": "wxaupllQI8zMn8m8",
     "clientSec": "6nVSIvoC16X1kaVl",
