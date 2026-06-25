@@ -1,0 +1,15 @@
+{
+    "cardSequence": "",
+    "paymentPrefix": "",
+    "token": "",
+    "openId": "omxHq0Jd7YT4IAQqpos_7StS_e4M",
+
+    "clientKey": "wxaupllQI8zMn8m8",
+    "clientSec": "6nVSIvoC16X1kaVl",
+    "signPath": "/card/queryRealCardInfo",
+    "fullUrl": "https://appcamp.kfc.com.cn/api/card/queryRealCardInfo",
+
+    "threads": 20,
+    "maxRetry": 5,
+    "retryWait": 3
+}

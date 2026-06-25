@@ -1,16 +1,20 @@
 # 结果文件
 found_payment.txt
 
+# 编译产物
+*.exe
+
 # 测试/验证脚本
 test_kbsv*.py
 verify_kbsv*.py
 test_kbsv_real*.py
 
-# 早期版本
+# Python 版本（已迁移到 Go）
 brute_payment.py
 brute_kfc.py
 brute_kfc_final.py
 run_brute.py
+kfc_script.py
 
 # Python
 __pycache__/
@@ -19,3 +23,4 @@ __pycache__/
 
 # 解包目录
 解包/
+

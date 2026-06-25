@@ -1,4 +1,4 @@
-# KFC 礼品卡 paymentCode 暴力枚举脚本
+# KFC 礼品卡 paymentCode 多线程枚举脚本
 
 ## 用途
 
@@ -24,34 +24,47 @@
 
 ### 1. 配置参数
 
-编辑 `kfc_script.py` 顶部的"配置区"：
+编辑同目录下的 `config.json`：
 
-```python
-# --- 礼品卡信息 ---
-CARD_SEQUENCE  = ""   # 卡号（cardSequence），例子：D0021IJD84HI3QE0000
-PAYMENT_PREFIX = ""   # 密码前16位，后4位由脚本枚举，例子：210010224828252
-TOKEN          = ""   # 登录凭证（从微信小程序抓包获取，有时效性）
-OPEN_ID        = "omxHq0Jd7YT4IAQqpos_7StS_e4M"
+```json
+{
+    "cardSequence": "",
+    "paymentPrefix": "",
+    "token": "",
+    "openId": "omxHq0Jd7YT4IAQqpos_7StS_e4M",
 
-# --- 运行参数 ---
-THREADS    = 20    # 并发线程数
-MAX_RETRY  = 5     # 单个卡密最大重试次数
-RETRY_WAIT = 3     # 重试前等待秒数
+    "clientKey": "wxaupllQI8zMn8m8",
+    "clientSec": "6nVSIvoC16X1kaVl",
+    "signPath": "/card/queryRealCardInfo",
+    "fullUrl": "https://appcamp.kfc.com.cn/api/card/queryRealCardInfo",
+
+    "threads": 20,
+    "maxRetry": 5,
+    "retryWait": 3
+}
 ```
 
 **参数说明：**
 
-- `CARD_SEQUENCE`：带字母的卡号（对应 Card Number），如 `D0021IJD84HI3QE0000`
-- `PAYMENT_PREFIX`：密码前16位（对应 Activation Code），如完整密码是 `2100102248282520032`，则填 `210010224828252`
-- `TOKEN`：登录凭证，需从微信小程序抓包获取，**有时效性**，过期需重新抓
-- `OPEN_ID`：微信 openId，一般不用改
-- `THREADS`：并发线程数，太多可能被限流，建议 `10~30`
+| 参数 | 说明 | 例子 |
+|------|------|------|
+| `cardSequence` | 卡号（带字母） | `D0021IJD84HI3QE0000` |
+| `paymentPrefix` | 密码前16位，后4位由脚本枚举 | `210010224828252` |
+| `token` | 登录凭证（从抓包获取，有时效性） | `25ee4ea98b88...` |
+| `openId` | 微信 openId，一般不用改 | `omxHq0Jd7YT4...` |
+| `threads` | 并发线程数（太多可能被限流，建议 10~30） | `20` |
+| `maxRetry` | 单个卡密最大重试次数 | `5` |
+| `retryWait` | 重试前等待秒数 | `3` |
+
+> `clientKey`、`clientSec`、`signPath`、`fullUrl` 为 kbsv 签名参数，从反编译源码提取，一般无需修改。
 
 ### 2. 运行
 
 ```bash
-python kfc_script.py
+kfc_enum.exe
 ```
+
+> ⚠️ `config.json` 必须与 `kfc_enum.exe` 在同一目录
 
 ### 3. 结果
 
@@ -62,25 +75,20 @@ python kfc_script.py
 响应: {...}
 ```
 
-## 如何抓取 TOKEN
+## 如何抓取 token
 
 1. PC 微信打开 KFC 小程序，进入礼品卡页面
-2. 用 Fiddler / Charles / HttpCanary 抓包
+2. 用 Fiddler / Reqable 抓包
 3. 找到 `queryRealCardInfo` 请求
 4. 从请求头/请求体中提取 `token`、`cardSequence`、`openId`
 
-> ⚠️ token 有时效性，过期后脚本会返回 `4000099 签名认证失败`，需重新抓包
+> ⚠️ token 有时效性，过期后脚本会返回 `4000099 签名认证失败` 或 `登录信息过期`，需重新抓包
 
-## kbsv 签名参数
+## 从源码编译
 
-以下参数从反编译源码提取，一般无需修改：
-
-| 参数 | 值 | 说明 |
-|------|-----|------|
-| `CLIENT_KEY` | `wxaupllQI8zMn8m8` | 客户端密钥 |
-| `CLIENT_SEC` | `6nVSIvoC16X1kaVl` | 客户端密钥 |
-| `SIGN_PATH` | `/card/queryRealCardInfo` | 签名路径（不带 `/api` 前缀）|
-| `FULL_URL` | `https://appcamp.kfc.com.cn/api/card/queryRealCardInfo` | 完整请求地址 |
+```bash
+go build -o kfc_enum.exe kfc_enum.go
+```
 
 ## 输出示例
 
@@ -112,7 +120,9 @@ KFC 礼品卡 paymentCode 多线程枚举
 
 | 文件 | 说明 |
 |------|------|
-| `kfc_script.py` | 主脚本，多线程枚举 |
+| `kfc_enum.exe` | 编译后的可执行程序 |
+| `kfc_enum.go` | Go 源代码 |
+| `config.json` | 配置文件 |
 | `found_payment.txt` | 找到后自动生成的结果文件 |
 | `README.md` | 本说明文档 |
 
