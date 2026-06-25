@@ -62,6 +62,7 @@ type Response struct {
 	ErrData   string      `json:"errData"`
 	ErrMsg    string      `json:"errMsg"`
 	ErrorCode interface{} `json:"errorCode"`
+	Data      interface{} `json:"data"`
 }
 
 var (
@@ -111,7 +112,22 @@ func tryOne(suffix string) string {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Yumc-Route-Cell", "yumc4")
 	req.Header.Set("X-Yumc-Route-Channel", "weapp")
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13) UnifiedPCWindowsWechat(0xf2541b17) XWEB/20005")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Rcsdcid", "rcsdcid")
+	req.Header.Set("Rcsav", "")
+	req.Header.Set("Wechat-Platform", "windows")
+	req.Header.Set("Wechat-Os-Version", "Windows 11 x64")
+	req.Header.Set("Wechat-Language", "zh_CN")
+	req.Header.Set("Wechat-Version", "4.1.11.23")
+	req.Header.Set("Wechat-Model", "microsoft")
+	req.Header.Set("Wechat-Pixelratio", "1")
+	req.Header.Set("Xweb_Xhr", "1")
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
 	if cfg.Referer != "" {
 		req.Header.Set("Referer", cfg.Referer)
 	}
@@ -173,8 +189,8 @@ func worker(jobs <-chan string, results chan<- string, wg *sync.WaitGroup) {
 				tag = fmt.Sprintf("[重试%d次]", retry)
 			}
 
-			// 兑换成功
-			if errCode == "0" {
+			// 兑换成功：errCode=0 且有 data
+			if errCode == "0" && resp.Data != nil {
 				foundFlag.Store(true)
 				fmt.Printf("\n%s\n", strings.Repeat("=", 60))
 				fmt.Printf(">>> ✅ 兑换成功!\n")
@@ -197,15 +213,19 @@ func worker(jobs <-chan string, results chan<- string, wg *sync.WaitGroup) {
 				break // 跳出重试循环，取下一个
 			}
 
-			// 其他错误 → 重试
+			// 其他错误（拥堵、超时、errCode=0无data等）→ 重试
+			reason := msg
+			if reason == "" {
+				reason = "响应异常(" + body + ")"
+			}
 			if retry < cfg.MaxRetry {
-				fmt.Printf("[%s]%s %s -> 等待%ds后重试\n", paymentCode, tag, msg, cfg.RetryWait)
+				fmt.Printf("[%s]%s %s -> 等待%ds后重试\n", paymentCode, tag, reason, cfg.RetryWait)
 				time.Sleep(time.Duration(cfg.RetryWait) * time.Second)
 				retry++
 				continue
 			}
 			// 达到最大重试次数
-			fmt.Printf("[%s]%s %s -> 已达最大重试次数(%d)，跳过\n", paymentCode, tag, msg, cfg.MaxRetry)
+			fmt.Printf("[%s]%s %s -> 已达最大重试次数(%d)，跳过\n", paymentCode, tag, reason, cfg.MaxRetry)
 			doneCount.Add(1)
 			break
 		}

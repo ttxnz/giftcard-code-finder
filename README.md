@@ -176,3 +176,4 @@ go build -ldflags "-s -w" -trimpath -o kfc_enum.exe kfc_enum.go
 - 仅用于找回自己名下礼品卡的错误卡密
 - token 有时效性，过期需重新抓包
 - 线程数过高可能触发限流，脚本会自动等待重试
+- ⚠️ 必胜客未经实际兑换测试，不保证可用性
