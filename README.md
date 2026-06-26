@@ -103,11 +103,18 @@ copy config.pizzahut.json config.json
 
 ### 3. 运行
 
+**Go 版本：**
 ```bash
 kfc_enum.exe
 ```
 
-> ⚠️ `config.json` 必须与 `kfc_enum.exe` 在同一目录
+**Python 版本：**
+```bash
+pip install requests
+python kfc_enum.py
+```
+
+> ⚠️ `config.json` 必须与可执行程序在同一目录
 
 ### 4. 结果
 
@@ -164,8 +171,9 @@ go build -ldflags "-s -w" -trimpath -o kfc_enum.exe kfc_enum.go
 
 | 文件 | 说明 |
 |------|------|
-| `kfc_enum.exe` | 编译后的可执行程序 |
+| `kfc_enum.exe` | Go 编译后的可执行程序 |
 | `kfc_enum.go` | Go 源代码 |
+| `kfc_enum.py` | Python 版本（需安装 requests） |
 | `config.json` | 肯德基配置文件 |
 | `config.pizzahut.json` | 必胜客配置文件（使用时改名为 config.json） |
 | `found_payment.txt` | 找到后自动生成的结果文件 |
